@@ -1,56 +1,85 @@
 breed [people person]
 
 people-own [
-  age
-  infected
+  protected?
+  infected?
 ]
 
 to setup
   clear-all
   ask patches [set pcolor blue]
 
-  create-people initial-people - initial-infected [
-    set infected false
+  create-people initial-people [
+    set size 1 ;; to make them larger
+    set infected? false
     set shape "person"
-    move-to one-of patches
+    set protected? false
     set color yellow
+    move-to one-of patches
+    ;; ensures that no two people are on the same spot
+    while [any? other people-here] [
+      move-to one-of patches
+    ]
+  ]
+  randomly-assign-infected initial-infected
+
+  ;; Ensuring the number of protected cannont be more than the uninfected
+  let actual-protected 0
+  ifelse initial-protected > (initial-people - initial-infected) [
+    set actual-protected (initial-people - initial-infected)
+  ]  [
+    set actual-protected initial-protected
+  ]
+  randomly-assign-protected actual-protected
+
+end
+
+to go
+  ;; If every one dies stop simulation
+  if count people with [not infected? and not protected?] = 0 [stop]
+
+
+  ask people [
+    let neighbours people in-radius 1 with [who != [who] of myself]
+    show count neighbours
+    if infected? [
+      ask neighbours [
+        set infected? true
+        if not protected? [ set color red ] ;; someone who is protected can not be effected but can be a carrier
+      ]
+    ]
   ]
 
-  create-people initial-infected [
-    set infected true
-    set shape "person"
-    move-to one-of patches
+
+end
+
+
+to randomly-assign-infected [initial-infected-num]
+  ;; Randomly assign the infected people
+  let infected-people n-of initial-infected-num people
+  ask infected-people [
+    set infected? true
     set color red
   ]
 end
 
-to go
-
-  ;;if not any ? turtle [stop] ;; If every one dies stop simulation
-
-
-ask people [
-  let neighbours people in-radius 1 with [who != [who] of myself]
-  show count neighbours
-    if infected [
-      ask neighbours [
-        set infected true
-        set color red
-      ]
-    ]
-]
-
-
+to randomly-assign-protected [initial-protected-num]
+  ;; Randomly assign the protected people out of the non-infetced
+  let protected-people n-of initial-protected-num (people with [not infected?])
+  ask protected-people [
+    set protected? true
+    set color orange
+  ]
 end
 @#$#@#$#@
 GRAPHICS-WINDOW
-210
+263
 10
-647
-448
+895
+643
 -1
 -1
-13.0
+18.91
 1
 10
 1
@@ -71,10 +100,10 @@ ticks
 30.0
 
 BUTTON
-83
-84
-149
-117
+28
+126
+94
+159
 setup
 setup
 NIL
@@ -88,40 +117,40 @@ NIL
 1
 
 SLIDER
-27
-180
-199
-213
+25
+74
+197
+107
 initial-people
 initial-people
 0
 500
-291.0
+500.0
 1
 1
 NIL
 HORIZONTAL
 
 SLIDER
-20
-256
-192
-289
+28
+181
+200
+214
 initial-infected
 initial-infected
 0
 50
-36.0
+3.0
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-43
-331
-106
-364
+133
+126
+196
+159
 go
 go
 NIL
@@ -133,6 +162,21 @@ NIL
 NIL
 NIL
 1
+
+SLIDER
+29
+228
+201
+261
+initial-protected
+initial-protected
+0
+100
+10.0
+1
+1
+NIL
+HORIZONTAL
 
 @#$#@#$#@
 ## WHAT IS IT?
