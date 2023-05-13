@@ -1,3 +1,7 @@
+globals [
+  can-non-other-be-infected?
+  num-of-infected
+]
 breed [people person]
 
 people-own [
@@ -7,7 +11,9 @@ people-own [
 
 to setup
   clear-all
+  reset-ticks
   ask patches [set pcolor blue]
+  set can-non-other-be-infected? false
 
   create-people initial-people [
     set size 1 ;; to make them larger
@@ -35,20 +41,32 @@ to setup
 end
 
 to go
-  ;; If every one dies stop simulation
-  if count people with [not infected? and not protected?] = 0 [stop]
+  ;; If every unprotected person that is not has been infected stop the simulation
+  if can-non-other-be-infected? [
+    user-message "Every one not social distancing has been infected"
+    stop
+  ]
 
+  let was-any-infected? false
 
   ask people [
+    if walking-around? [ forward 1 ]
     let neighbours people in-radius 1 with [who != [who] of myself]
-    show count neighbours
     if infected? [
       ask neighbours [
-        set infected? true
-        if not protected? [ set color red ] ;; someone who is protected can not be effected but can be a carrier
+        if not infected? [
+          if not was-any-infected? [set was-any-infected? true]
+          set infected? true
+          if not protected? [ set color red ] ;; someone who is protected can not be effected but can be a carrier
+        ]
       ]
     ]
   ]
+
+  set num-of-infected count people with [infected? and not protected?]
+  set can-non-other-be-infected? not was-any-infected?
+
+  tick
 
 
 end
@@ -102,7 +120,7 @@ ticks
 BUTTON
 28
 126
-94
+108
 159
 setup
 setup
@@ -124,8 +142,8 @@ SLIDER
 initial-people
 initial-people
 0
-500
-500.0
+1000
+854.0
 1
 1
 NIL
@@ -140,20 +158,20 @@ initial-infected
 initial-infected
 0
 50
-3.0
+14.0
 1
 1
 NIL
 HORIZONTAL
 
 BUTTON
-133
+120
 126
 196
 159
 go
 go
-NIL
+T
 1
 T
 OBSERVER
@@ -172,11 +190,51 @@ initial-protected
 initial-protected
 0
 100
-10.0
+26.0
 1
 1
 NIL
 HORIZONTAL
+
+SWITCH
+28
+283
+203
+316
+walking-around?
+walking-around?
+1
+1
+-1000
+
+PLOT
+24
+348
+224
+498
+Rate of infecton
+Time (ticks)
+num of infected
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -2674135 true "" "plot num-of-infected"
+
+MONITOR
+26
+531
+158
+576
+Number of infected
+num-of-infected
+17
+1
+11
 
 @#$#@#$#@
 ## WHAT IS IT?
