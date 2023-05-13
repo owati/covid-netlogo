@@ -143,7 +143,7 @@ initial-people
 initial-people
 0
 1000
-854.0
+446.0
 1
 1
 NIL
@@ -203,7 +203,7 @@ SWITCH
 316
 walking-around?
 walking-around?
-1
+0
 1
 -1000
 
